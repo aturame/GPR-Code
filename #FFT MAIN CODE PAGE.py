@@ -30,7 +30,7 @@ kernel_rbf = C(1.0, (1e-6, 1e6)) * RBF(length_scale=15.0, length_scale_bounds=(1
 kernel_periodic = C(1.0, (1e-6, 1e6)) * ExpSineSquared(length_scale=10.0, periodicity=30.0)
 Kernel_Combined = kernel_rbf + kernel_periodic
 
-# Parallelized GPR Fitting
+# Parallelized GPR Fitting (Optimizing by using all possible cores instead of 1, split using parallel computing)
 def parallel_fit(seed):
     gpr = GaussianProcessRegressor(
         kernel=Kernel_Combined,
