@@ -9,8 +9,8 @@ from joblib import Parallel, delayed
 import time
 
 # Load Data
-openprice = pd.read_excel("/Users/atulramesh/Desktop/data2.xlsx", usecols=['PX_OPEN'])
-date = pd.read_excel("/Users/atulramesh/Desktop/data2.xlsx", usecols=['Dates'])
+openprice = pd.read_excel("[File Path]",usecols = ["PX_OPEN"])
+date = pd.read_excel("[File Path]", usecols=['Dates'])
 
 # Date Processing
 date_numeric = pd.to_datetime(date['Dates']).astype('int64') // 10**9
@@ -24,6 +24,8 @@ price_scaler = StandardScaler()
 openprice_scaled = price_scaler.fit_transform(openprice.values.reshape(-1, 1)).flatten()
 
 # Kernel Setup
+# To adjust kernel, adjust the parameters being the kernel length and the bounds to the number of rows of data you are using. 
+#if you do not want to change it manually, use a count function to automate and convert to engineering numerals.
 kernel_rbf = C(1.0, (1e-6, 1e6)) * RBF(length_scale=15.0, length_scale_bounds=(1e-1, 1e3))
 kernel_periodic = C(1.0, (1e-6, 1e6)) * ExpSineSquared(length_scale=10.0, periodicity=30.0)
 Kernel_Combined = kernel_rbf + kernel_periodic
@@ -54,21 +56,6 @@ best_model = max(models, key=lambda m: m.log_marginal_likelihood())
 prices_pred_scaled, sigma = best_model.predict(date_numeric_scaled, return_std=True)
 prices_pred = price_scaler.inverse_transform(prices_pred_scaled.reshape(-1, 1)).flatten()
 
-# FFT Analysis on the Predicted GPR Curve
-N = len(prices_pred)
-T = (date_numeric_scaled[1] - date_numeric_scaled[0])[0]
-fft_values = fft(prices_pred)
-fft_frequencies = fftfreq(N, T)[:N // 2]
-fft_magnitude = 2.0 / N * np.abs(fft_values[:N // 2])
-
-# Dominant Frequency
-if len(fft_magnitude) > 0:
-    dominant_freq_index = np.argmax(fft_magnitude)
-    dominant_frequency = fft_frequencies[dominant_freq_index]
-    dominant_amplitude = fft_magnitude[dominant_freq_index]
-
-    print(f"Dominant Frequency: {dominant_frequency} Hz")
-    print(f"Dominant Amplitude: {dominant_amplitude}")
 
 # End Timer
 end_time = time.perf_counter()
@@ -84,12 +71,6 @@ plt.xlabel("Dates")
 plt.ylabel("Price")
 plt.legend()
 
-# Plotting FFT Spectrum
-plt.figure(figsize=(12, 6))
-plt.plot(fft_frequencies, fft_magnitude, color='purple')
-plt.title("Frequency Spectrum (FFT of GPR Prediction)")
-plt.xlabel("Frequency (Hz)")
-plt.ylabel("Amplitude")
-plt.grid(True)
-plt.show()
-# End Timer
+
+
+
